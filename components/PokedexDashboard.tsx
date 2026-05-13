@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { pokemonForms } from "@/data/pokemonForms";
 import { EditCardModal } from "@/components/EditCardModal";
+import { StatsCard } from "@/components/ui/StatsCard";
+import { ValueCard } from "@/components/ui/ValueCard";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import type { CollectionData, CollectionState, SelectedPokemon, } from "@/types/collection";
 
 function formatCurrency(value: number) {
@@ -658,70 +661,5 @@ export function PokedexDashboard() {
   />
 )}
     </main>
-  );
-}
-
-type StatsCardProps = {
-  title: string;
-  value: string | number;
-  valueClassName?: string;
-};
-
-function StatsCard({ title, value, valueClassName = "" }: StatsCardProps) {
-  return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
-      <p className="text-sm text-zinc-400">{title}</p>
-      <strong className={`mt-2 block text-3xl ${valueClassName}`}>
-        {value}
-      </strong>
-    </div>
-  );
-}
-
-type ValueCardProps = {
-  title: string;
-  description: string;
-  value: string;
-  valueClassName?: string;
-};
-
-function ValueCard({
-  title,
-  description,
-  value,
-  valueClassName = "",
-}: ValueCardProps) {
-  return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
-      <p className="text-sm text-zinc-400">{title}</p>
-      <strong className={`mt-2 block text-2xl ${valueClassName}`}>
-        {value}
-      </strong>
-      <p className="mt-2 text-xs text-zinc-500">{description}</p>
-    </div>
-  );
-}
-
-type StatusBadgeProps = {
-  status: string;
-  variant: "owned" | "selected" | "pending";
-};
-
-function StatusBadge({ status, variant }: StatusBadgeProps) {
-  const variants = {
-    owned:
-      "border-emerald-400/30 bg-emerald-400/10 text-emerald-300 before:bg-emerald-400",
-    selected:
-      "border-sky-400/30 bg-sky-400/10 text-sky-300 before:bg-sky-400",
-    pending:
-      "border-zinc-700 bg-zinc-950 text-zinc-400 before:bg-zinc-500",
-  };
-
-  return (
-    <span
-      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${variants[variant]} before:h-2 before:w-2 before:rounded-full`}
-    >
-      {status}
-    </span>
   );
 }
