@@ -1,43 +1,25 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { pokemonForms } from "@/data/pokemonForms";
 import { EditCardModal } from "@/components/EditCardModal";
-import { StatsCard } from "@/components/ui/StatsCard";
-import { ValueCard } from "@/components/ui/ValueCard";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 import { PokedexTable } from "@/components/PokedexTable";
 import { PokedexCardGrid } from "@/components/PokedexCardGrid";
-import type { CollectionData, CollectionState, SelectedPokemon, } from "@/types/collection";
-
-function formatCurrency(value: number) {
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-}
-
-function normalizeText(value: string) {
-  return value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-}
-
-function getInitialCollectionState(): CollectionState {
-  return pokemonForms.reduce<CollectionState>((acc, pokemon) => {
-    acc[pokemon.id] = {
-      selectedCard: pokemon.selectedCard,
-      cardImageUrl: pokemon.cardImageUrl,
-      ligaPokemonUrl: pokemon.ligaPokemonUrl,
-      lowestPrice: pokemon.lowestPrice,
-      owned: pokemon.owned,
-      notes: "",
-    };
-
-    return acc;
-  }, {});
-}
+import { StatsCard } from "@/components/ui/StatsCard";
+import { ValueCard } from "@/components/ui/ValueCard";
+import { formatCurrency, normalizeText } from "@/lib/format";
+import {
+  downloadCollectionBackup,
+  getInitialCollectionState,
+  importCollectionBackup,
+  loadCollectionFromStorage,
+  saveCollectionToStorage,
+} from "@/lib/collection";
+import type {
+  CollectionData,
+  CollectionState,
+  SelectedPokemon,
+} from "@/types/collection";
 
 export function PokedexDashboard() {
   const [search, setSearch] = useState("");
@@ -53,15 +35,15 @@ export function PokedexDashboard() {
   );
 
   useEffect(() => {
-    const savedCollection = localStorage.getItem("pokebinder-collection");
+    const savedCollection = loadCollectionFromStorage();
 
     if (savedCollection) {
-      setCollection(JSON.parse(savedCollection));
+      setCollection(savedCollection);
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("pokebinder-collection", JSON.stringify(collection));
+    saveCollectionToStorage(collection);
   }, [collection]);
 
   function updatePokemonData(
@@ -95,66 +77,11 @@ export function PokedexDashboard() {
   }
 
   function exportCollection() {
-    const backup = {
-      exportedAt: new Date().toISOString(),
-      app: "PokéBinder",
-      version: 1,
-      collection,
-    };
-
-    const file = new Blob([JSON.stringify(backup, null, 2)], {
-      type: "application/json",
-    });
-
-    const url = URL.createObjectURL(file);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = `pokebinder-backup-${new Date()
-      .toISOString()
-      .slice(0, 10)}.json`;
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(url);
+    downloadCollectionBackup(collection);
   }
 
-  function importCollection(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-
-    if (!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      try {
-        const result = reader.result;
-
-        if (typeof result !== "string") {
-          alert("Não consegui ler esse arquivo.");
-          return;
-        }
-
-        const parsedBackup = JSON.parse(result);
-
-        if (!parsedBackup.collection) {
-          alert("Esse arquivo não parece ser um backup válido do PokéBinder.");
-          return;
-        }
-
-        setCollection(parsedBackup.collection);
-        alert("Backup importado com sucesso!");
-      } catch {
-        alert(
-          "Erro ao importar backup. Verifique se o arquivo é um JSON válido."
-        );
-      }
-    };
-
-    reader.readAsText(file);
-    event.target.value = "";
+  function importCollection(event: Parameters<typeof importCollectionBackup>[0]) {
+    importCollectionBackup(event, setCollection);
   }
 
   function resetCollection() {
@@ -167,7 +94,7 @@ export function PokedexDashboard() {
     const emptyCollection = getInitialCollectionState();
 
     setCollection(emptyCollection);
-    localStorage.setItem("pokebinder-collection", JSON.stringify(emptyCollection));
+    saveCollectionToStorage(emptyCollection);
   }
 
   const mergedPokemonForms = useMemo(() => {
@@ -433,33 +360,33 @@ export function PokedexDashboard() {
             </div>
           </div>
 
-        {viewMode === "table" && (
-  <PokedexTable
-    pokemonList={filteredPokemon}
-    onEdit={setSelectedPokemon}
-    formatCurrency={formatCurrency}
-  />
-)}
+          {viewMode === "table" && (
+            <PokedexTable
+              pokemonList={filteredPokemon}
+              onEdit={setSelectedPokemon}
+              formatCurrency={formatCurrency}
+            />
+          )}
 
-{viewMode === "cards" && (
-  <PokedexCardGrid
-    pokemonList={filteredPokemon}
-    onEdit={setSelectedPokemon}
-    formatCurrency={formatCurrency}
-  />
-)}
+          {viewMode === "cards" && (
+            <PokedexCardGrid
+              pokemonList={filteredPokemon}
+              onEdit={setSelectedPokemon}
+              formatCurrency={formatCurrency}
+            />
+          )}
         </section>
       </section>
 
       {selectedPokemon && (
-  <EditCardModal
-    selectedPokemon={selectedPokemon}
-    collection={collection}
-    onClose={() => setSelectedPokemon(null)}
-    onClear={clearPokemonData}
-    onUpdate={updatePokemonData}
-  />
-)}
+        <EditCardModal
+          selectedPokemon={selectedPokemon}
+          collection={collection}
+          onClose={() => setSelectedPokemon(null)}
+          onClear={clearPokemonData}
+          onUpdate={updatePokemonData}
+        />
+      )}
     </main>
   );
 }
