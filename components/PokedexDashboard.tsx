@@ -216,8 +216,8 @@ export function PokedexDashboard() {
 
   const completionPercentage =
     mergedPokemonForms.length > 0
-      ? ((acquiredCards / mergedPokemonForms.length) * 100).toFixed(2)
-      : "0.00";
+      ? Number(((acquiredCards / mergedPokemonForms.length) * 100).toFixed(2))
+      : 0;
 
   const formTypes = useMemo(() => {
     return Array.from(new Set(pokemonForms.map((pokemon) => pokemon.formType)));
@@ -265,53 +265,71 @@ export function PokedexDashboard() {
           </div>
         </div>
 
-        <section className="grid gap-4 md:grid-cols-5">
-          <StatsCard title="Total da coleção" value={mergedPokemonForms.length} />
+        <section className="grid gap-4 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+  <div className="rounded-2xl border border-yellow-400/20 bg-gradient-to-br from-zinc-900 to-zinc-950 p-5 shadow-2xl shadow-yellow-950/10">
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className="text-sm text-zinc-400">Progresso da coleção</p>
+        <strong className="mt-2 block text-4xl text-yellow-300">
+          {completionPercentage}%
+        </strong>
+      </div>
 
-          <StatsCard
-            title="Selecionados"
-            value={selectedCards}
-            valueClassName="text-sky-400"
-          />
+      <div className="rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-1 text-xs font-semibold text-yellow-300">
+        PokéBinder
+      </div>
+    </div>
 
-          <StatsCard
-            title="Adquiridos"
-            value={acquiredCards}
-            valueClassName="text-emerald-400"
-          />
+    <div className="mt-5 h-4 overflow-hidden rounded-full bg-zinc-800">
+      <div
+        className="h-full rounded-full bg-yellow-400 transition-all duration-500"
+        style={{ width: `${completionPercentage}%` }}
+      />
+    </div>
 
-          <StatsCard
-            title="Faltantes"
-            value={missingCards}
-            valueClassName="text-red-400"
-          />
+    <div className="mt-3 flex justify-between text-xs text-zinc-500">
+      <span>{acquiredCards} adquiridos</span>
+      <span>{mergedPokemonForms.length} total</span>
+    </div>
+  </div>
 
-          <StatsCard
-            title="Completo"
-            value={`${completionPercentage}%`}
-            valueClassName="text-yellow-300"
+  <StatsCard title="Total da coleção" value={mergedPokemonForms.length} />
+
+  <StatsCard
+    title="Selecionados"
+    value={selectedCards}
+    valueClassName="text-sky-400"
+  />
+
+  <StatsCard
+    title="Faltantes"
+    value={missingCards}
+          valueClassName="text-red-400"
           />
         </section>
 
         <section className="grid gap-4 md:grid-cols-3">
-          <StatsCard
-            title="Valor estimado total"
-            value={formatCurrency(totalCollectionValue)}
-            valueClassName="text-yellow-300 text-2xl"
-          />
+  <ValueCard
+    title="Valor estimado total"
+    description="Soma dos menores preços cadastrados"
+    value={formatCurrency(totalCollectionValue)}
+    valueClassName="text-yellow-300"
+  />
 
-          <StatsCard
-            title="Valor adquirido"
-            value={formatCurrency(acquiredCollectionValue)}
-            valueClassName="text-emerald-400 text-2xl"
-          />
+  <ValueCard
+    title="Valor adquirido"
+    description="Valor aproximado do que você já possui"
+    value={formatCurrency(acquiredCollectionValue)}
+    valueClassName="text-emerald-400"
+  />
 
-          <StatsCard
-            title="Valor faltante"
-            value={formatCurrency(missingCollectionValue)}
-            valueClassName="text-red-400 text-2xl"
-          />
-        </section>
+  <ValueCard
+    title="Valor faltante"
+    description="Estimativa do que ainda falta comprar"
+    value={formatCurrency(missingCollectionValue)}
+    valueClassName="text-red-400"
+  />
+</section>
 
         <section className="rounded-2xl border border-zinc-800 bg-zinc-900">
           <div className="flex flex-col gap-4 border-b border-zinc-800 p-5">
@@ -354,6 +372,20 @@ export function PokedexDashboard() {
                 </button>
               </div>
             </div>
+
+            <div className="flex flex-wrap gap-2 text-sm">
+  <span className="rounded-full border border-zinc-700 bg-zinc-950 px-3 py-1 text-zinc-300">
+    Exibindo {filteredPokemon.length} de {mergedPokemonForms.length}
+  </span>
+
+  <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-emerald-300">
+    {acquiredCards} adquiridos
+  </span>
+
+  <span className="rounded-full border border-red-400/30 bg-red-400/10 px-3 py-1 text-red-300">
+    {missingCards} faltantes
+  </span>
+</div>
 
             <div className="grid gap-3 md:grid-cols-3">
               <input
@@ -469,20 +501,14 @@ export function PokedexDashboard() {
                     </td>
 
                     <td className="px-5 py-4">
-                      {pokemon.owned ? (
-                        <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs text-emerald-300">
-                          Adquirido
-                        </span>
-                      ) : pokemon.selectedCard ? (
-                        <span className="rounded-full border border-sky-400/30 bg-sky-400/10 px-3 py-1 text-xs text-sky-300">
-                          Selecionado
-                        </span>
-                      ) : (
-                        <span className="rounded-full border border-zinc-700 bg-zinc-950 px-3 py-1 text-xs text-zinc-400">
-                          Pendente
-                        </span>
-                      )}
-                    </td>
+  {pokemon.owned ? (
+    <StatusBadge status="Adquirido" variant="owned" />
+  ) : pokemon.selectedCard ? (
+    <StatusBadge status="Selecionado" variant="selected" />
+  ) : (
+    <StatusBadge status="Pendente" variant="pending" />
+  )}
+</td>
 
                     <td className="px-5 py-4">
                       <div className="flex gap-2">
@@ -733,5 +759,53 @@ function StatsCard({ title, value, valueClassName = "" }: StatsCardProps) {
         {value}
       </strong>
     </div>
+  );
+}
+
+type ValueCardProps = {
+  title: string;
+  description: string;
+  value: string;
+  valueClassName?: string;
+};
+
+function ValueCard({
+  title,
+  description,
+  value,
+  valueClassName = "",
+}: ValueCardProps) {
+  return (
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+      <p className="text-sm text-zinc-400">{title}</p>
+      <strong className={`mt-2 block text-2xl ${valueClassName}`}>
+        {value}
+      </strong>
+      <p className="mt-2 text-xs text-zinc-500">{description}</p>
+    </div>
+  );
+}
+
+type StatusBadgeProps = {
+  status: string;
+  variant: "owned" | "selected" | "pending";
+};
+
+function StatusBadge({ status, variant }: StatusBadgeProps) {
+  const variants = {
+    owned:
+      "border-emerald-400/30 bg-emerald-400/10 text-emerald-300 before:bg-emerald-400",
+    selected:
+      "border-sky-400/30 bg-sky-400/10 text-sky-300 before:bg-sky-400",
+    pending:
+      "border-zinc-700 bg-zinc-950 text-zinc-400 before:bg-zinc-500",
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs ${variants[variant]} before:h-2 before:w-2 before:rounded-full`}
+    >
+      {status}
+    </span>
   );
 }
