@@ -5,6 +5,7 @@ import { pokemonForms } from "@/data/pokemonForms";
 import { EditCardModal } from "@/components/EditCardModal";
 import { PokedexTable } from "@/components/PokedexTable";
 import { PokedexCardGrid } from "@/components/PokedexCardGrid";
+import { PokedexToolbar } from "@/components/PokedexToolbar";
 import { StatsCard } from "@/components/ui/StatsCard";
 import { ValueCard } from "@/components/ui/ValueCard";
 import { formatCurrency, normalizeText } from "@/lib/format";
@@ -245,136 +246,42 @@ export function PokedexDashboard() {
         </section>
 
         <section className="rounded-2xl border border-zinc-800 bg-zinc-900">
-          <div className="flex flex-col gap-4 border-b border-zinc-800 p-5">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div>
-                <h2 className="text-xl font-semibold">Minha Pokédex</h2>
-                <p className="text-sm text-zinc-400">
-                  Clique em editar para escolher a carta desejada. O check só
-                  deve ser marcado quando você já possuir a carta.
-                </p>
-              </div>
+          <section className="rounded-2xl border border-zinc-800 bg-zinc-900">
+  <PokedexToolbar
+    search={search}
+    statusFilter={statusFilter}
+    formTypeFilter={formTypeFilter}
+    viewMode={viewMode}
+    formTypes={formTypes}
+    filteredCount={filteredPokemon.length}
+    totalCount={mergedPokemonForms.length}
+    acquiredCards={acquiredCards}
+    missingCards={missingCards}
+    onSearchChange={setSearch}
+    onStatusFilterChange={setStatusFilter}
+    onFormTypeFilterChange={setFormTypeFilter}
+    onViewModeChange={setViewMode}
+    onExportCollection={exportCollection}
+    onImportCollection={importCollection}
+    onResetCollection={resetCollection}
+  />
 
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={exportCollection}
-                  className="rounded-lg border border-emerald-400/40 px-3 py-2 text-sm font-semibold text-emerald-300 hover:bg-emerald-400/10"
-                >
-                  Exportar backup
-                </button>
+  {viewMode === "table" && (
+    <PokedexTable
+      pokemonList={filteredPokemon}
+      onEdit={setSelectedPokemon}
+      formatCurrency={formatCurrency}
+    />
+  )}
 
-                <label className="cursor-pointer rounded-lg border border-sky-400/40 px-3 py-2 text-sm font-semibold text-sky-300 hover:bg-sky-400/10">
-                  Importar backup
-                  <input
-                    type="file"
-                    accept="application/json"
-                    onChange={importCollection}
-                    className="hidden"
-                  />
-                </label>
-
-                <button
-                  type="button"
-                  onClick={resetCollection}
-                  className="rounded-lg border border-red-400/40 px-3 py-2 text-sm font-semibold text-red-300 hover:bg-red-400/10"
-                >
-                  Limpar tudo
-                </button>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2 text-sm">
-              <span className="rounded-full border border-zinc-700 bg-zinc-950 px-3 py-1 text-zinc-300">
-                Exibindo {filteredPokemon.length} de {mergedPokemonForms.length}
-              </span>
-
-              <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-emerald-300">
-                {acquiredCards} adquiridos
-              </span>
-
-              <span className="rounded-full border border-red-400/30 bg-red-400/10 px-3 py-1 text-red-300">
-                {missingCards} faltantes
-              </span>
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
-              <input
-                type="text"
-                placeholder="Buscar Pokémon..."
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-2 text-sm outline-none placeholder:text-zinc-500 focus:border-yellow-400"
-              />
-
-              <select
-                value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value)}
-                className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-2 text-sm outline-none focus:border-yellow-400"
-              >
-                <option value="todos">Todos os status</option>
-                <option value="adquiridos">Adquiridos</option>
-                <option value="faltantes">Faltantes</option>
-                <option value="selecionados">Com carta selecionada</option>
-                <option value="nao-selecionados">Sem carta selecionada</option>
-              </select>
-
-              <select
-                value={formTypeFilter}
-                onChange={(event) => setFormTypeFilter(event.target.value)}
-                className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-2 text-sm outline-none focus:border-yellow-400"
-              >
-                <option value="todos">Todos os tipos</option>
-                {formTypes.map((formType) => (
-                  <option key={formType} value={formType}>
-                    {formType}
-                  </option>
-                ))}
-              </select>
-
-              <div className="flex rounded-xl border border-zinc-700 bg-zinc-950 p-1">
-                <button
-                  type="button"
-                  onClick={() => setViewMode("table")}
-                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                    viewMode === "table"
-                      ? "bg-yellow-400 text-zinc-950"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  Tabela
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setViewMode("cards")}
-                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                    viewMode === "cards"
-                      ? "bg-yellow-400 text-zinc-950"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  Cards
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {viewMode === "table" && (
-            <PokedexTable
-              pokemonList={filteredPokemon}
-              onEdit={setSelectedPokemon}
-              formatCurrency={formatCurrency}
-            />
-          )}
-
-          {viewMode === "cards" && (
-            <PokedexCardGrid
-              pokemonList={filteredPokemon}
-              onEdit={setSelectedPokemon}
-              formatCurrency={formatCurrency}
-            />
-          )}
+  {viewMode === "cards" && (
+    <PokedexCardGrid
+      pokemonList={filteredPokemon}
+      onEdit={setSelectedPokemon}
+      formatCurrency={formatCurrency}
+    />
+  )}
+</section>
         </section>
       </section>
 
